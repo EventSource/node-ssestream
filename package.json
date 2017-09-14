@@ -1,0 +1,16 @@
+{
+  "name": "ssestream",
+  "version": "1.0.0",
+  "description": "Send Server-Sent Events with a stream",
+  "main": "index.js",
+  "repository": "git://github.com/EventSource/node-ssestream.git",
+  "author": "Aslak Hellesøy",
+  "license": "MIT",
+  "devDependencies": {
+    "eventsource": "^1.0.5",
+    "mocha": "^3.5.3"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec"
+  }
+}
