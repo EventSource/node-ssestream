@@ -94,7 +94,7 @@ data: hello
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Transfer-Encoding': 'identity',
         'Cache-Control': 'no-cache',
-        Connection: 'keep-alive',
+        'Connection': 'keep-alive',
       })
       callback()
     }
@@ -103,12 +103,17 @@ data: hello
 
   it('allows an eventsource to connect', callback => {
     const server = http.createServer((req, res) => {
+      sse = new SseStream(req)
       sse.pipe(res)
     })
     server.listen(err => {
       if (err) return callback(err)
       const es = new EventSource(`http://localhost:${server.address().port}`)
-      es.onopen = () => callback()
+      es.onmessage = e => {
+        assert.equal(e.data, 'hello')
+        callback()
+      }
+      es.onopen = () => sse.write({data: 'hello'})
       es.onerror = e =>
         callback(new Error(`Error from EventSource: ${JSON.stringify(e)}`))
     })
