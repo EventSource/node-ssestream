@@ -6,7 +6,7 @@ A node stream for writing Server-Sent Events
 
 In a `(req, res)` handler for a [`request`](https://nodejs.org/api/http.html#http_event_request) event, Express [#get](https://expressjs.com/en/4x/api.html#app.get.method) route or similar:
 
-```
+```javascript
 function (req, res) {
   const sse = new SseStream(req)
   sse.pipe(res)
