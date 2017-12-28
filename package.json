@@ -1,6 +1,6 @@
 {
   "name": "ssestream",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Send Server-Sent Events with a stream",
   "main": "index.js",
   "repository": "git://github.com/EventSource/node-ssestream.git",
