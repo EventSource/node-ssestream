@@ -71,6 +71,7 @@ data: monde
       comment: 'jibber jabber',
       event: 'tea-time',
       id: 'the-id',
+      retry: 222,
       data: 'hello',
     })
     sse.end()
@@ -82,6 +83,7 @@ data: monde
 : jibber jabber
 event: tea-time
 id: the-id
+retry: 222
 data: hello
 
 `

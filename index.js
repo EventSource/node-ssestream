@@ -49,7 +49,7 @@ class SseStream extends Stream.Transform {
     if (message.comment) this.push(`: ${message.comment}\n`)
     if (message.event) this.push(`event: ${message.event}\n`)
     if (message.id) this.push(`id: ${message.id}\n`)
-    if (message.retry) this.push(message.retry)
+    if (message.retry) this.push(`retry: ${message.retry}\n`)
     if (message.data) this.push(dataString(message.data))
     this.push('\n')
     callback()
