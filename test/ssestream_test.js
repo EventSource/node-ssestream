@@ -103,6 +103,26 @@ data: hello
     sse.pipe(sink)
   })
 
+
+  it('extends and replaces default headers with custom ones', callback => {
+    sink.writeHead = (status, headers) => {
+      assert.deepEqual(headers, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Transfer-Encoding': 'identity',
+        // 'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Cache-Control': 'no-cache, no-transform', // replace existing header
+        'Custom-Header': 'foo' // add custom header
+      })
+      callback()
+    }
+    const customHeaders = {
+      'Cache-Control': 'no-cache, no-transform', // replace existing header
+      'Custom-Header': 'foo' // add custom header
+    }
+    sse.pipe(sink, undefined, customHeaders)
+  })
+
   it('allows an eventsource to connect', callback => {
     const server = http.createServer((req, res) => {
       sse = new SseStream(req)

@@ -30,14 +30,25 @@ class SseStream extends Stream.Transform {
     }
   }
 
-  pipe(destination, options) {
+  /**
+   * Similar to {@link Stream.Transform.push} with the addition of specifying custom HTTP headers.
+   */
+  pipe(destination, options, customHeaders) {
     if (typeof destination.writeHead === 'function') {
-      destination.writeHead(200, {
+      var defaultHeaders = {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Transfer-Encoding': 'identity',
         'Cache-Control': 'no-cache',
         Connection: 'keep-alive',
-      })
+      }
+
+      // replace/extend default headers
+      if (customHeaders) {
+        for (const header of Object.keys(customHeaders)) {
+          defaultHeaders[header] = customHeaders[header]
+        }
+      }
+      destination.writeHead(200, defaultHeaders)
       destination.flushHeaders()
     }
     // Some clients (Safari) don't trigger onopen until the first frame is received.
