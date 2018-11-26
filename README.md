@@ -20,10 +20,11 @@ In a `(req, res)` handler for a [`request`](https://nodejs.org/api/http.html#htt
 
 ```javascript
 const SseStream = require('ssestream')
+const customHeaders = {'Cache-Control': 'no-cache, no-transform'} // optional
 
 function (req, res) {
   const sse = new SseStream(req)
-  sse.pipe(res)
+  sse.pipe(res, undefined, customHeaders)
   
   const message = {
     data: 'hello\nworld',
