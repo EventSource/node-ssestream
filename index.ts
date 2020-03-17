@@ -1,11 +1,25 @@
-'use strict'
+import { Transform } from 'stream'
+import { IncomingMessage, OutgoingHttpHeaders } from "http"
 
-const Stream = require('stream')
-
-function dataString(data) {
+function dataString(data: string|object): string {
   if (typeof data === 'object') return dataString(JSON.stringify(data))
   return data.split(/\r\n|\r|\n/).map(line => `data: ${line}\n`).join('')
 }
+
+interface Message {
+  data: string|object
+  comment?: string,
+  event?: string,
+  id?: string,
+  retry?: number,
+}
+
+interface WriteHeaders {
+  writeHead?(statusCode: number, headers?: OutgoingHttpHeaders): WriteHeaders
+  flushHeaders?(): void
+}
+
+export type HeaderStream = NodeJS.WritableStream & WriteHeaders
 
 /**
  * Transforms "messages" to W3C event stream content.
@@ -20,8 +34,8 @@ function dataString(data) {
  * If constructed with a HTTP Request, it will optimise the socket for streaming.
  * If this stream is piped to an HTTP Response, it will set appropriate headers.
  */
-class SseStream extends Stream.Transform {
-  constructor(req) {
+export default class SseStream extends Transform {
+  constructor(req?: IncomingMessage) {
     super({ objectMode: true })
     if (req) {
       req.socket.setKeepAlive(true)
@@ -30,8 +44,8 @@ class SseStream extends Stream.Transform {
     }
   }
 
-  pipe(destination, options) {
-    if (typeof destination.writeHead === 'function') {
+  pipe<T extends HeaderStream>(destination: T, options?: { end?: boolean; }): T {
+    if (destination.writeHead) {
       destination.writeHead(200, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Transfer-Encoding': 'identity',
@@ -45,7 +59,7 @@ class SseStream extends Stream.Transform {
     return super.pipe(destination, options)
   }
 
-  _transform(message, _, callback) {
+  _transform(message: Message, encoding: string, callback: (error?: (Error | null), data?: any) => void) {
     if (message.comment) this.push(`: ${message.comment}\n`)
     if (message.event) this.push(`event: ${message.event}\n`)
     if (message.id) this.push(`id: ${message.id}\n`)
@@ -54,6 +68,8 @@ class SseStream extends Stream.Transform {
     this.push('\n')
     callback()
   }
-}
 
-module.exports = SseStream
+  writeMessage(message: Message, encoding?: string, cb?: (error: Error | null | undefined) => void): boolean {
+    return this.write(message, encoding, cb)
+  }
+}

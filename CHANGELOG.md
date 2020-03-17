@@ -22,6 +22,16 @@ N/A
 ### Fixed
 N/A
 
+## [1.1.0] - 2020-03-17
+
+### Added
+
+* Add `SseStream#writeMessage` as a typesafe alias to `SseStream#write`
+
+### Changed
+
+* Ported code to TypeScript
+
 ## [1.0.1] - 2017-12-28
 
 ### Fixed
@@ -34,7 +44,8 @@ N/A
 * First stable release!
 
 <!-- Releases -->
-[Unreleased]: https://github.com/EventSource/node-ssestream/compare/v1.0.1...master
+[Unreleased]: https://github.com/EventSource/node-ssestream/compare/v1.1.0...master
+[1.1.0]:      https://github.com/EventSource/node-ssestream/compare/v1.0.1...v1.1.0
 [1.0.1]:      https://github.com/EventSource/node-ssestream/compare/v1.0.0...v1.0.1
 [1.0.0]:      https://github.com/EventSource/node-ssestream/tree/v1.0.0
 

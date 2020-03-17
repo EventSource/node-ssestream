@@ -1,6 +1,6 @@
 # SseStream
 
-A node stream for writing Server-Sent Events
+A zero-dependency node stream for writing [Server-Sent Events](https://html.spec.whatwg.org/multipage/server-sent-events.html).
 
 ## Installation
 
@@ -34,8 +34,12 @@ function (req, res) {
 
 Properties on `message`:
 
-* `data` (String or object, which gets turned into JSON)
-* `event`
-* `id`
-* `retry`
-* `comment`
+* `data` - String or object, which gets turned into JSON
+* `event` - (optional) String
+* `id` - (optional) String
+* `retry` - (optional) number
+* `comment` - (optional) String
+
+## TypeScript
+
+The `SseStream#writeMessage(message)` method is a type-safe alias for `SseStream#write(message)`.

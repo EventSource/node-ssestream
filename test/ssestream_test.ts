@@ -1,39 +1,35 @@
-'use strict'
+import assert from 'assert'
+import { Writable } from 'stream'
+import http, { OutgoingHttpHeaders } from 'http'
+import EventSource from 'eventsource'
+import SseStream, { HeaderStream } from '../index'
+import { AddressInfo } from "net"
 
-const assert = require('assert')
-const Stream = require('stream')
-const http = require('http')
-const EventSource = require('eventsource')
-const SseStream = require('..')
+const written = (stream: Writable) => new Promise((resolve, reject) => stream.on('error', reject).on('finish', resolve))
 
-const written = stream => new Promise((resolve, reject) => stream.on('error', reject).on('finish', resolve))
+class Sink extends Writable implements HeaderStream {
+  private readonly chunks: string[] = []
 
-class Sink extends Stream.Writable {
-  constructor() {
+  constructor(public readonly writeHead?: (statusCode: number, headers?: OutgoingHttpHeaders) => Sink) {
     super({ objectMode: true })
-    this._chunks = []
   }
 
-  _write(chunk, encoding, callback) {
-    this._chunks.push(chunk)
+  _write(chunk: any, encoding: string, callback: (error?: Error | null) => void): void {
+    this.chunks.push(chunk)
     callback()
   }
 
   get content() {
-    return this._chunks.join('')
+    return this.chunks.join('')
   }
 }
 
 describe('SseStream', () => {
-  let sse, sink
-  beforeEach(() => {
-    sse = new SseStream()
-    sink = new Sink()
-  })
-
   it('writes multiple multiline messages', async () => {
+    const sse = new SseStream()
+    const sink = new Sink()
     sse.pipe(sink)
-    sse.write({
+    sse.writeMessage({
       data: 'hello\nworld',
     })
     sse.write({
@@ -56,8 +52,10 @@ data: monde
   })
 
   it('writes object messages as JSON', async () => {
+    const sse = new SseStream()
+    const sink = new Sink()
     sse.pipe(sink)
-    sse.write({
+    sse.writeMessage({
       data: { hello: 'world' },
     })
     sse.end()
@@ -66,8 +64,10 @@ data: monde
   })
 
   it('writes all message attributes', async () => {
+    const sse = new SseStream()
+    const sink = new Sink()
     sse.pipe(sink)
-    sse.write({
+    sse.writeMessage({
       comment: 'jibber jabber',
       event: 'tea-time',
       id: 'the-id',
@@ -91,7 +91,9 @@ data: hello
   })
 
   it('sets headers on destination when it looks like a HTTP Response', callback => {
-    sink.writeHead = (status, headers) => {
+    const sse = new SseStream()
+    let sink: Sink
+    sink = new Sink((status: number, headers: OutgoingHttpHeaders) => {
       assert.deepEqual(headers, {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Transfer-Encoding': 'identity',
@@ -99,23 +101,25 @@ data: hello
         'Connection': 'keep-alive',
       })
       callback()
-    }
+      return sink
+    })
     sse.pipe(sink)
   })
 
   it('allows an eventsource to connect', callback => {
+    let sse: SseStream
     const server = http.createServer((req, res) => {
       sse = new SseStream(req)
       sse.pipe(res)
     })
-    server.listen(err => {
-      if (err) return callback(err)
-      const es = new EventSource(`http://localhost:${server.address().port}`)
+    server.listen(() => {
+      const es = new EventSource(`http://localhost:${(server.address() as AddressInfo).port}`)
       es.onmessage = e => {
         assert.equal(e.data, 'hello')
-        callback()
+        es.close()
+        server.close(callback)
       }
-      es.onopen = () => sse.write({data: 'hello'})
+      es.onopen = () => sse.writeMessage({data: 'hello'})
       es.onerror = e =>
         callback(new Error(`Error from EventSource: ${JSON.stringify(e)}`))
     })
