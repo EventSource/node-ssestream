@@ -50,6 +50,7 @@ export default class SseStream extends Transform {
         'Content-Type': 'text/event-stream; charset=utf-8',
         'Transfer-Encoding': 'identity',
         'Cache-Control': 'no-cache',
+        'X-Accel-Buffering': 'no',
         Connection: 'keep-alive',
       })
       destination.flushHeaders()
